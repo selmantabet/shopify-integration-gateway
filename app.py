@@ -166,9 +166,7 @@ class Task_Update(Resource):
         return
 
     def post(self):
-        print("Connected...")
         task_update_payload_raw = request.get_json()
-        print("JSON Retrieved: ", task_update_payload_raw)
         task_update_payload = task_update_payload_raw["Data"]  # Cleaned
         task_update_metafields = task_update_payload["MetaDataFields"]
         order_id = task_update_payload["ClientGeneratedId"]
