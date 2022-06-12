@@ -85,10 +85,10 @@ class Tenant(Resource):
             clean_host_url(args["merchant_url"]), INTEGRATION_GATEWAY_TEST, args["shop_token"], "fulfillments", "create")
         print("Fulfillment Callback JSON: ", fulfillments_callback_created)
         webhook_id = fulfillments_callback_created["webhook"]["id"]
+
         fleet_callback_created = subscribe_fleet(FLEET_MANAGEMENT_URI,
                                                  args["fleet_token"], INTEGRATION_GATEWAY_TEST)
-        # print("Fleet Callback Status Code: ", str(
-        #     fleet_callback_created.status_code))
+
         url_cleaned = clean_host_url(args["merchant_url"])
         new_tenant = TenantTable(args["company_id"], retrieve_merchant_name(url_cleaned), url_cleaned, args["fleet_token"],
                                  args["shop_token"], args["shop_api_secret"], webhook_id)
@@ -144,20 +144,9 @@ class Task(Resource):
             TenantTable.company_name == merchant_name).first()
 
         merchant_url = company_record.url
-
         fleet_token = company_record.fleet_token
-
         merchant_token = company_record.merchant_token
 
-        """
-        Something like this:
-        company_id = lookup_company_id(merchant_url)
-        fleet_token = lookup_fleet_token(merchant_url)
-
-        Because if they authenticated to the gateway, then we already know their token,
-        and their webhook has their shop URL as a header (now stored in merchant_url)
-        For that we need to find a way to retrieve that info safely from FalconFlex.
-        """
         fulfillment_payload = json.loads(request_body)
         # THIS MUST ALWAYS PASS. Since HMAC passed, request integrity should be fine.
         assert(fulfillment_payload["id"] == fulfillment_id_header,
@@ -230,12 +219,10 @@ def hmac_authenticate(hash_base64, name, payload):
     api_secret = TenantTable.query.filter(
         TenantTable.company_name == name).first().merchant_api_secret
     api_secret_bytes = str.encode(api_secret)
-    # payload_bytes = str.encode(payload)
     h = hmac.new(api_secret_bytes, payload, hashlib.sha256)
 
     # Comparing hashes, using compare_digest to avoid timing attacks.
     if hmac.compare_digest(hash_decoded, h.digest()):
-        print("Passed auth.")
         return True
     return False
 
