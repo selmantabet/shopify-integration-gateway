@@ -159,7 +159,6 @@ class Task(Resource):
         For that we need to find a way to retrieve that info safely from FalconFlex.
         """
         fulfillment_payload = json.loads(request_body)
-        # fulfillment_payload = request.json  # Ensure that nulls are None
         # THIS MUST ALWAYS PASS. Since HMAC passed, request integrity should be fine.
         assert(fulfillment_payload["id"] == fulfillment_id_header,
                "Fatal error: Fulfillment ID Header not equal to body fulfillment ID.")
@@ -170,16 +169,6 @@ class Task(Resource):
         print("Payload generated: ", task_payload)
         creation_response = create_task(
             FLEET_MANAGEMENT_URI, fleet_token, task_payload)
-        # print("Task Created!")
-        # status = creation_response["status"]
-        # # Update fulfillment with received task status?
-        # order_id = creation_response["clientGeneratedId"]
-        # assert(
-        #     order_id == fulfillment_payload["order_id"], "Order ID mismatch.")
-        # fulfillment_id = fulfillment_payload["id"]
-        # update_response = send_status_update(
-        #     merchant_url, merchant_token, order_id, fulfillment_id, status)
-        # # Create fulfillment event.
         return {"Creation Response JSON: ": creation_response}, 200
 
 
@@ -194,9 +183,6 @@ class Task_Update(Resource):
         task_update_payload = task_update_payload_raw["Data"]  # Cleaned
         task_update_metafields = task_update_payload["MetaDataFields"]
         order_id = task_update_payload["ClientGeneratedId"]
-        # order_id = task_update_metafields[0]["Value"]
-        # assert(order_id == task_update_payload["ClientGeneratedId"],
-        #        "Malformed Metadata: order_id in metafield isn't the same as ClientGeneratedID.")
 
         # Check this once metadata structure is finalized.
         for i in task_update_metafields:
@@ -225,11 +211,6 @@ class TenantView(Resource):
         args = tenant_get_args.parse_args()
         company_record = TenantTable.query.filter(
             TenantTable.company_id == args["company_id"]).first()
-        # print(company_record)
-        # print(company_record.fleet_token, type(company_record.fleet_token))
-        # print(company_record.merchant_api_secret, type(
-        #     company_record.merchant_api_secret))
-
         return str(company_record), 200
 
 
