@@ -13,6 +13,7 @@ from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_restful import Api, Resource
+from requests import JSONDecodeError
 from constants_prod import SHOPIFY_API_VERSION
 
 from parsers import *
@@ -77,7 +78,7 @@ class Tenant(Resource):
     """
 
     def get(self):  # Get all tenant callbacks
-        return
+        return "This resource only supports POST requests.", 405
 
     def post(self):  # Create new tenant
         args = tenant_post_args.parse_args()
@@ -97,10 +98,11 @@ class Tenant(Resource):
         return {"fulfillments_callback_response": fulfillments_callback_created, "fleet_callback_response": fleet_callback_created}, 200
 
     def put(self):  # Update tenant
-        return
+        return "This resource only supports POST requests.", 405
 
     # Delete tenant - NOT TESTED - FALCONFLEX API RESOURCE REQUIRED.
     def delete(self):
+        return "This resource does not yet support DELETE requests.", 405
         args = tenant_delete_args.parse_args()
         merchant_url = clean_host_url(args["merchant_url"])
         company_record = TenantTable.query.filter(
@@ -123,7 +125,7 @@ class Task(Resource):
     """
 
     def get(self):  # Get all tasks
-        return
+        return "This resource only supports POST requests.", 405
 
     def post(self):  # Create a new task
         # Parsing headers...
@@ -131,15 +133,14 @@ class Task(Resource):
         merchant_url_noscheme = request.headers.get("x-shopify-shop-domain")
         merchant_name = merchant_url_noscheme.split(
             ".")[0]  # https://{merchant_name}.myshopify.com
-        print(merchant_name, merchant_url_noscheme)
         fulfillment_id_header = request.headers.get("x-shopify-fulfillment-id")
         shopify_api_version = request.headers.get("x-shopify-api-version")
         if (shopify_api_version != SHOPIFY_API_VERSION):
-            print("WARNING: SHOPIFY API VERSION HAS CHANGED.")
+            print(
+                "WARNING: SHOPIFY API VERSION HAS CHANGED. PLEASE UPDATE GATEWAY ACCORDINGLY.")
         request_body = request.get_data()
         if not hmac_authenticate(hmac_hash, merchant_name, request_body):
             return "Failed Authentication. Invalid HMAC.", 403
-        print("Continuing from auth...")
         company_record = TenantTable.query.filter(
             TenantTable.company_name == merchant_name).first()
 
@@ -160,13 +161,24 @@ class Task(Resource):
             FLEET_MANAGEMENT_URI, fleet_token, task_payload)
         return {"Creation Response JSON: ": creation_response}, 200
 
+    def put(self):
+        return "This resource only supports POST requests.", 405
+
+    def delete(self):
+        return "This resource only supports POST requests.", 405
+
 
 class Task_Update(Resource):
     def get(self):
-        return
+        return "This resource only supports POST requests.", 405
 
     def post(self):
-        task_update_payload_raw = request.get_json()
+        try:
+            task_update_payload_raw = request.get_json()
+        except JSONDecodeError:
+            return {"errors": "JSON could not be decoded."}, 400
+        except:
+            return {"errors": "Something went wrong. Try again later."}, 500
         task_update_payload = task_update_payload_raw["Data"]  # Cleaned
         task_update_metafields = task_update_payload["MetaDataFields"]
         order_id = task_update_payload["ClientGeneratedId"]
@@ -180,7 +192,7 @@ class Task_Update(Resource):
             elif i["Key"] == "merchant_url":
                 merchant_url = i["Value"]
             else:
-                raise("Malformed Metadata: ", i)
+                return {"errors": "Malformed metadata."}, 400
 
         merchant_url_cleaned = clean_host_url(merchant_url)
         company_record = TenantTable.query.filter(
@@ -192,6 +204,12 @@ class Task_Update(Resource):
             merchant_url_cleaned, shop_token, order_id, fulfillment_id, mapped_status)
         return update_response, 200
 
+    def put(self):
+        return "This resource only supports POST requests.", 405
+
+    def delete(self):
+        return "This resource only supports POST requests.", 405
+
 
 class TenantView(Resource):
     def get(self):  # Get all tenant callbacks
@@ -199,6 +217,15 @@ class TenantView(Resource):
         company_record = TenantTable.query.filter(
             TenantTable.company_id == args["company_id"]).first()
         return str(company_record), 200
+
+    def post(self):
+        return "This resource only supports GET requests.", 405
+
+    def put(self):
+        return "This resource only supports GET requests.", 405
+
+    def delete(self):
+        return "This resource only supports GET requests.", 405
 
 
 """------ root/host in testing is INTEGRATION_GATEWAY_TEST ------"""
