@@ -11,10 +11,13 @@ It contains all the keys and strings used to test out different parts of the pro
 """
 
 POSTGRESQL_DB_NAME = "falconflex-integration"
+POSTGRESQL_AZURE_DB_NAME = "postgres"
 POSTGRESQL_PORT = 5432
 POSTGRESQL_ADDRESS = "localhost"
+POSTGRESQL_HOST_AZURE = "integration-gateway-postgres.postgres.database.azure.com"
 POSTGRESQL_USER = "postgres"
 POSTGRESQL_PASSWORD = "Selman@123"
+POSTGRESQL_AZURE_PASSWORD = "Selman_123"
 
 API_KEY = "0d1520ca4fb7f27f1782fe0b7c0451bc"
 API_SECRET = "6955f2ab1a939dd4689e0633fa934a0a"
