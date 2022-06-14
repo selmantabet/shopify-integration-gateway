@@ -11,35 +11,27 @@ from flask_restful import reqparse
 
 tenant_get_args = reqparse.RequestParser()
 tenant_get_args.add_argument(
-    "company_id", type=str, help="Company ID", required=True)
+    "company_id", type=str, help="Company ID", required=True, location='form')
 
 
 tenant_post_args = reqparse.RequestParser()
 tenant_post_args.add_argument(
-    "merchant_url", type=str, help="Merchant Host URL (https://merchant_name.shop.com/)", required=True)
+    "merchant_url", type=str, help="Merchant Host URL (https://merchant_name.shop.com/)", required=True, location='form')
 tenant_post_args.add_argument(
-    "shop_token", type=str, help="Shop Access Token", required=True)
+    "shop_token", type=str, help="Shop Access Token", required=True, location='form')
 tenant_post_args.add_argument(
-    "shop_api_secret", type=str, help="Shop API Secret", required=True)
+    "shop_api_secret", type=str, help="Shop API Secret", required=True, location='form')
 tenant_post_args.add_argument(
-    "fleet_url", type=str, help="Fleet Management Host URL")
-tenant_post_args.add_argument(
-    "fleet_token", type=str, help="Fleet Management Access Token", required=True)
-tenant_post_args.add_argument(
-    "company_id", type=str, help="Company ID", required=True)
+    "company_id", type=str, help="Company ID", required=True, location='form')
 
 tenant_delete_args = reqparse.RequestParser()
 tenant_delete_args.add_argument(
-    "merchant_url", type=str, help="Merchant Host URL (https://merchant_name.shop.com/)", required=True)
+    "merchant_url", type=str, help="Merchant Host URL (https://merchant_name.shop.com/)", required=True, location='form')
 tenant_delete_args.add_argument(
-    "shop_token", type=str, help="Shop Access Token", required=True)
+    "shop_token", type=str, help="Shop Access Token", required=True, location='form')
 tenant_delete_args.add_argument(
-    "webhook_id", type=str, help="Shop Webhook ID", required=True)
+    "webhook_id", type=str, help="Shop Webhook ID", required=True, location='form')
 tenant_delete_args.add_argument(
-    "fleet_url", type=str, help="Fleet Management Host URL")
+    "company_id", type=str, help="Company ID", required=True, location='form')
 tenant_delete_args.add_argument(
-    "fleet_token", type=str, help="Fleet Management Access Token", required=True)
-tenant_delete_args.add_argument(
-    "company_id", type=str, help="Company ID", required=True)
-tenant_delete_args.add_argument(
-    "callback_id", type=str, help="Fleet Callback ID", required=True)
+    "callback_id", type=str, help="Fleet Callback ID", required=True, location='form')

@@ -13,8 +13,7 @@ def create_task(fleet_management_url, fleet_token, task_payload):
     fleet_auth_header = {"Authorization": "Bearer " + fleet_token}
     r = requests.post(fleet_management_url + endpoint,
                       headers=fleet_auth_header, json=task_payload)
-    print(task_payload)
-    return r.json()
+    return r
 
 
 def send_status_update(merchant_host, shop_token, order_id, fulfillment_id, status):
@@ -28,7 +27,7 @@ def send_status_update(merchant_host, shop_token, order_id, fulfillment_id, stat
     r = requests.post(merchant_host + endpoint,
                       headers=shop_auth_header, json=update_payload)
 
-    return r.json()
+    return r
 
 
 def get_fulfillment_events(merchant_host, shop_token, order_id, fulfillment_id):

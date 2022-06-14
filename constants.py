@@ -11,10 +11,13 @@ It contains all the keys and strings used to test out different parts of the pro
 """
 
 POSTGRESQL_DB_NAME = "falconflex-integration"
+POSTGRESQL_AZURE_DB_NAME = "postgres"
 POSTGRESQL_PORT = 5432
 POSTGRESQL_ADDRESS = "localhost"
+POSTGRESQL_HOST_AZURE = "integration-gateway-postgres.postgres.database.azure.com"
 POSTGRESQL_USER = "postgres"
 POSTGRESQL_PASSWORD = "Selman@123"
+POSTGRESQL_AZURE_PASSWORD = "Selman_123"
 
 API_KEY = "0d1520ca4fb7f27f1782fe0b7c0451bc"
 API_SECRET = "6955f2ab1a939dd4689e0633fa934a0a"
@@ -32,7 +35,7 @@ FLEET_MANAGEMENT_URI = "https://integrationgateway-staging-lb.falconflex.ai"
 FLEET_MANAGEMENT_URI_TEST = "https://webhook.site/3cc94e74-27fb-4bfa-b9e8-350bc6d5a206"
 FLEET_AUTH_TOKEN = "15D7E1D1F22D3F415C346E0DB3D2D6A50912F90461C355221F455B5DA4E24A43"
 
-INTEGRATION_GATEWAY = "https://localhost:5000/"
+INTEGRATION_GATEWAY = "https://integration-gateway.azurewebsites.net"
 INTEGRATION_GATEWAY_HOST = "webhook.site"
 INTEGRATION_GATEWAY_TEST_NOSCHEME = "webhook.site/d18990f9-038f-4c9f-b20b-6ead5f45bb3f"
 INTEGRATION_GATEWAY_TEST = "https://webhook.site/44a25e69-f3ce-4b30-81bd-f3210e4b230e"

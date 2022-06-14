@@ -14,11 +14,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_restful import Api, Resource
 from requests import JSONDecodeError
-from constants_prod import SHOPIFY_API_VERSION
+from constants_prod import *
+# from constants import *
 
 from parsers import *
 from rest_functions import *
-from constants import *
 from webhook_functions import *
 from callback_functions import *
 from helper_functions import *
@@ -28,7 +28,8 @@ import json
 app = Flask(__name__)
 api = Api(app)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{POSTGRESQL_USER}:{POSTGRESQL_PASSWORD}@{POSTGRESQL_ADDRESS}/{POSTGRESQL_DB_NAME}"
+# app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{POSTGRESQL_USER}:{POSTGRESQL_PASSWORD}@{POSTGRESQL_ADDRESS}/{POSTGRESQL_DB_NAME}"
+app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{POSTGRESQL_USER}:{POSTGRESQL_AZURE_PASSWORD}@{POSTGRESQL_HOST_AZURE}/{POSTGRESQL_AZURE_DB_NAME}"
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -42,16 +43,14 @@ class TenantTable(db.Model):
     company_id = db.Column(db.String(255), unique=True)
     company_name = db.Column(db.String(255), unique=True)
     url = db.Column(db.String(255), unique=True)
-    fleet_token = db.Column(db.String(255), unique=True)
     merchant_token = db.Column(db.String(255), unique=True)
     merchant_api_secret = db.Column(db.String(255), unique=True)
     merchant_webhook_id = db.Column(db.String(255), unique=True)
 
-    def __init__(self, company_id, company_name, url, fleet_token, merchant_token, merchant_api_secret, merchant_webhook_id):
+    def __init__(self, company_id, company_name, url, merchant_token, merchant_api_secret, merchant_webhook_id):
         self.company_id = company_id
         self.company_name = company_name
         self.url = url
-        self.fleet_token = fleet_token
         self.merchant_token = merchant_token
         self.merchant_api_secret = merchant_api_secret
         self.merchant_webhook_id = merchant_webhook_id
@@ -62,7 +61,7 @@ class TenantTable(db.Model):
 
 class TenantSchema(ma.Schema):
     class Meta:
-        fields = ("company_id", "company_name", "url", "fleet_token",
+        fields = ("company_id", "company_name", "url",
                   "merchant_token", "merchant_api_secret", "merchant_webhook_id")
 
 
@@ -83,19 +82,26 @@ class Tenant(Resource):
     def post(self):  # Create new tenant
         args = tenant_post_args.parse_args()
         fulfillments_callback_created = subscribe_merchant(
-            clean_host_url(args["merchant_url"]), INTEGRATION_GATEWAY_TEST, args["shop_token"], "fulfillments", "create")
-        print("Fulfillment Callback JSON: ", fulfillments_callback_created)
-        webhook_id = fulfillments_callback_created["webhook"]["id"]
-
-        fleet_callback_created = subscribe_fleet(FLEET_MANAGEMENT_URI,
-                                                 args["fleet_token"], INTEGRATION_GATEWAY_TEST)
+            clean_host_url(args["merchant_url"]), INTEGRATION_GATEWAY, args["shop_token"], "fulfillments", "create")
+        try:
+            fulfillments_callback_created_json = fulfillments_callback_created.json()
+        except JSONDecodeError:
+            return {"errors": "JSON could not be decoded."}, 400
+        except:
+            return {"errors": "Something went wrong. Try again later."}, 400
+        print("Fulfillment Callback JSON: ",
+              fulfillments_callback_created_json)
+        webhook_id = fulfillments_callback_created_json["webhook"]["id"]
 
         url_cleaned = clean_host_url(args["merchant_url"])
-        new_tenant = TenantTable(args["company_id"], retrieve_merchant_name(url_cleaned), url_cleaned, args["fleet_token"],
+        new_tenant = TenantTable(args["company_id"], retrieve_merchant_name(url_cleaned), url_cleaned,
                                  args["shop_token"], args["shop_api_secret"], webhook_id)
         db.session.add(new_tenant)
         db.session.commit()
-        return {"fulfillments_callback_response": fulfillments_callback_created, "fleet_callback_response": fleet_callback_created}, 200
+        print("Fulfillments Callback Response JSON: ",
+              fulfillments_callback_created_json)
+        print("Tenant string: ", str(new_tenant))
+        return {"fulfillments_callback_response": fulfillments_callback_created_json}, 200
 
     def put(self):  # Update tenant
         return "This resource only supports POST requests.", 405
@@ -145,7 +151,6 @@ class Task(Resource):
             TenantTable.company_name == merchant_name).first()
 
         merchant_url = company_record.url
-        fleet_token = company_record.fleet_token
         merchant_token = company_record.merchant_token
 
         fulfillment_payload = json.loads(request_body)
@@ -157,9 +162,17 @@ class Task(Resource):
         task_payload = generate_task_payload(
             merchant_url, merchant_token, fulfillment_payload)
         print("Payload generated: ", task_payload)
+
         creation_response = create_task(
-            FLEET_MANAGEMENT_URI, fleet_token, task_payload)
-        return {"Creation Response JSON: ": creation_response}, 200
+            FLEET_MANAGEMENT_URI_PROD, FLEET_AUTH_TOKEN_PROD, task_payload)
+        try:
+            creation_response_json = creation_response.json()
+        except JSONDecodeError:
+            return {"errors": "Task Creation JSON could not be decoded."}, 500
+        except:
+            return {"errors": "Something went wrong with task creation. Try again later."}, 500
+        print("Creation Response JSON: ", creation_response_json)
+        return {"Creation Response JSON: ": creation_response_json}, 200
 
     def put(self):
         return "This resource only supports POST requests.", 405
@@ -176,9 +189,9 @@ class Task_Update(Resource):
         try:
             task_update_payload_raw = request.get_json()
         except JSONDecodeError:
-            return {"errors": "JSON could not be decoded."}, 400
+            return {"errors": "Task Update Payload JSON could not be decoded."}, 400
         except:
-            return {"errors": "Something went wrong. Try again later."}, 500
+            return {"errors": "Something went wrong with parsing incoming data."}, 400
         task_update_payload = task_update_payload_raw["Data"]  # Cleaned
         task_update_metafields = task_update_payload["MetaDataFields"]
         order_id = task_update_payload["ClientGeneratedId"]
@@ -202,7 +215,14 @@ class Task_Update(Resource):
         mapped_status = mapping_dict[status]
         update_response = send_status_update(
             merchant_url_cleaned, shop_token, order_id, fulfillment_id, mapped_status)
-        return update_response, 200
+        try:
+            update_response_json = update_response.json()
+        except JSONDecodeError:
+            return {"errors": "Update Response JSON could not be decoded."}, 400
+        except:
+            return {"errors": "Something went wrong with sending status update. Try again later."}, 400
+        print("Update Response JSON: ", update_response_json)
+        return update_response_json, 200
 
     def put(self):
         return "This resource only supports POST requests.", 405
