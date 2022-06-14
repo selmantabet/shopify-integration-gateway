@@ -21,8 +21,8 @@ tenant_post_args.add_argument(
     "shop_token", type=str, help="Shop Access Token", required=True)
 tenant_post_args.add_argument(
     "shop_api_secret", type=str, help="Shop API Secret", required=True)
-tenant_post_args.add_argument(
-    "fleet_url", type=str, help="Fleet Management Host URL")
+# tenant_post_args.add_argument(
+#     "fleet_url", type=str, help="Fleet Management Host URL")
 tenant_post_args.add_argument(
     "fleet_token", type=str, help="Fleet Management Access Token", required=True)
 tenant_post_args.add_argument(
@@ -35,8 +35,8 @@ tenant_delete_args.add_argument(
     "shop_token", type=str, help="Shop Access Token", required=True)
 tenant_delete_args.add_argument(
     "webhook_id", type=str, help="Shop Webhook ID", required=True)
-tenant_delete_args.add_argument(
-    "fleet_url", type=str, help="Fleet Management Host URL")
+# tenant_delete_args.add_argument(
+#     "fleet_url", type=str, help="Fleet Management Host URL")
 tenant_delete_args.add_argument(
     "fleet_token", type=str, help="Fleet Management Access Token", required=True)
 tenant_delete_args.add_argument(
