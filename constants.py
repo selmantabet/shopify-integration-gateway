@@ -35,7 +35,7 @@ FLEET_MANAGEMENT_URI = "https://integrationgateway-staging-lb.falconflex.ai"
 FLEET_MANAGEMENT_URI_TEST = "https://webhook.site/3cc94e74-27fb-4bfa-b9e8-350bc6d5a206"
 FLEET_AUTH_TOKEN = "15D7E1D1F22D3F415C346E0DB3D2D6A50912F90461C355221F455B5DA4E24A43"
 
-INTEGRATION_GATEWAY = "https://localhost:5000/"
+INTEGRATION_GATEWAY = "https://integration-gateway.azurewebsites.net"
 INTEGRATION_GATEWAY_HOST = "webhook.site"
 INTEGRATION_GATEWAY_TEST_NOSCHEME = "webhook.site/d18990f9-038f-4c9f-b20b-6ead5f45bb3f"
 INTEGRATION_GATEWAY_TEST = "https://webhook.site/44a25e69-f3ce-4b30-81bd-f3210e4b230e"

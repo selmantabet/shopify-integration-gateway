@@ -84,7 +84,7 @@ class Tenant(Resource):
     def post(self):  # Create new tenant
         args = tenant_post_args.parse_args()
         fulfillments_callback_created = subscribe_merchant(
-            clean_host_url(args["merchant_url"]), INTEGRATION_GATEWAY_TEST, args["shop_token"], "fulfillments", "create")
+            clean_host_url(args["merchant_url"]), INTEGRATION_GATEWAY, args["shop_token"], "fulfillments", "create")
         try:
             fulfillments_callback_created_json = fulfillments_callback_created.json()
         except JSONDecodeError:
@@ -96,7 +96,7 @@ class Tenant(Resource):
         webhook_id = fulfillments_callback_created_json["webhook"]["id"]
 
         fleet_callback_created = subscribe_fleet(FLEET_MANAGEMENT_URI,
-                                                 args["fleet_token"], INTEGRATION_GATEWAY_TEST)
+                                                 args["fleet_token"], INTEGRATION_GATEWAY)
 
         url_cleaned = clean_host_url(args["merchant_url"])
         new_tenant = TenantTable(args["company_id"], retrieve_merchant_name(url_cleaned), url_cleaned, args["fleet_token"],
