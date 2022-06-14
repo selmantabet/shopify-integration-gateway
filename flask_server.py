@@ -254,4 +254,4 @@ def hmac_authenticate(hash_base64, name, payload):
 
 if __name__ == "__main__":
     # Needless to say, do not use deploy this using the run method, let alone debug mode.
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
