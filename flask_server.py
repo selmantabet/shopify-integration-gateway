@@ -165,9 +165,16 @@ class Task(Resource):
         task_payload = generate_task_payload(
             merchant_url, merchant_token, fulfillment_payload)
         print("Payload generated: ", task_payload)
+
         creation_response = create_task(
             FLEET_MANAGEMENT_URI, fleet_token, task_payload)
-        return {"Creation Response JSON: ": creation_response}, 200
+        try:
+            creation_response_json = creation_response.json()
+        except JSONDecodeError:
+            return {"errors": "Task Creation JSON could not be decoded."}, 500
+        except:
+            return {"errors": "Something went wrong with task creation. Try again later."}, 500
+        return {"Creation Response JSON: ": creation_response_json}, 200
 
     def put(self):
         return "This resource only supports POST requests.", 405
@@ -184,9 +191,9 @@ class Task_Update(Resource):
         try:
             task_update_payload_raw = request.get_json()
         except JSONDecodeError:
-            return {"errors": "JSON could not be decoded."}, 400
+            return {"errors": "Task Update Payload JSON could not be decoded."}, 400
         except:
-            return {"errors": "Something went wrong. Try again later."}, 400
+            return {"errors": "Something went wrong with parsing incoming data."}, 400
         task_update_payload = task_update_payload_raw["Data"]  # Cleaned
         task_update_metafields = task_update_payload["MetaDataFields"]
         order_id = task_update_payload["ClientGeneratedId"]
@@ -210,7 +217,13 @@ class Task_Update(Resource):
         mapped_status = mapping_dict[status]
         update_response = send_status_update(
             merchant_url_cleaned, shop_token, order_id, fulfillment_id, mapped_status)
-        return update_response, 200
+        try:
+            update_response_json = update_response.json()
+        except JSONDecodeError:
+            return {"errors": "Update Response JSON could not be decoded."}, 400
+        except:
+            return {"errors": "Something went wrong with sending status update. Try again later."}, 400
+        return update_response_json, 200
 
     def put(self):
         return "This resource only supports POST requests.", 405
