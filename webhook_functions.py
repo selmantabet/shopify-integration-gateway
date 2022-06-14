@@ -26,7 +26,7 @@ def subscribe_merchant(merchant_host, integration_endpoint, shop_token, category
     r = requests.post(merchant_host + endpoint,
                       headers=shop_auth_header, json=payload)
 
-    return r.json()
+    return r
 
 
 def unsubscribe_merchant(merchant_host, webhook_id, shop_token):

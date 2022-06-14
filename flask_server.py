@@ -84,8 +84,15 @@ class Tenant(Resource):
         args = tenant_post_args.parse_args()
         fulfillments_callback_created = subscribe_merchant(
             clean_host_url(args["merchant_url"]), INTEGRATION_GATEWAY_TEST, args["shop_token"], "fulfillments", "create")
-        print("Fulfillment Callback JSON: ", fulfillments_callback_created)
-        webhook_id = fulfillments_callback_created["webhook"]["id"]
+        try:
+            fulfillments_callback_created_json = fulfillments_callback_created.json()
+        except JSONDecodeError:
+            return {"errors": "JSON could not be decoded."}, 400
+        except:
+            return {"errors": "Something went wrong. Try again later."}, 400
+        print("Fulfillment Callback JSON: ",
+              fulfillments_callback_created_json)
+        webhook_id = fulfillments_callback_created_json["webhook"]["id"]
 
         fleet_callback_created = subscribe_fleet(FLEET_MANAGEMENT_URI,
                                                  args["fleet_token"], INTEGRATION_GATEWAY_TEST)
@@ -95,7 +102,7 @@ class Tenant(Resource):
                                  args["shop_token"], args["shop_api_secret"], webhook_id)
         db.session.add(new_tenant)
         db.session.commit()
-        return {"fulfillments_callback_response": fulfillments_callback_created, "fleet_callback_response": fleet_callback_created}, 200
+        return {"fulfillments_callback_response": fulfillments_callback_created_json, "fleet_callback_response": fleet_callback_created}, 200
 
     def put(self):  # Update tenant
         return "This resource only supports POST requests.", 405
@@ -178,7 +185,7 @@ class Task_Update(Resource):
         except JSONDecodeError:
             return {"errors": "JSON could not be decoded."}, 400
         except:
-            return {"errors": "Something went wrong. Try again later."}, 500
+            return {"errors": "Something went wrong. Try again later."}, 400
         task_update_payload = task_update_payload_raw["Data"]  # Cleaned
         task_update_metafields = task_update_payload["MetaDataFields"]
         order_id = task_update_payload["ClientGeneratedId"]

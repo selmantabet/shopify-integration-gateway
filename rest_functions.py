@@ -13,7 +13,6 @@ def create_task(fleet_management_url, fleet_token, task_payload):
     fleet_auth_header = {"Authorization": "Bearer " + fleet_token}
     r = requests.post(fleet_management_url + endpoint,
                       headers=fleet_auth_header, json=task_payload)
-    print(task_payload)
     return r.json()
 
 
