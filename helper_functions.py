@@ -141,7 +141,7 @@ def retrieve_fulfillment_location(merchant_host, shop_token, location_id):
     return r.json()
 
 
-def determine_dates(payload):
+def determine_dates():
     pickupByUtc_dt = datetime.utcnow()
     time_buffer = timedelta(minutes=TIME_BUFFER_MINUTES)
     pickupByUtc_dt = pickupByUtc_dt + time_buffer
