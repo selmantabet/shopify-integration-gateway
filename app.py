@@ -161,7 +161,6 @@ class Task(Resource):
         # merchant_token = MERCHANT_TOKEN  # ONLY FOR TESTING
         task_payload = generate_task_payload(
             merchant_url, merchant_token, fulfillment_payload)
-        print("Payload generated: ", task_payload)
 
         creation_response = create_task(
             FLEET_MANAGEMENT_URI_PROD, FLEET_AUTH_TOKEN_PROD, task_payload)

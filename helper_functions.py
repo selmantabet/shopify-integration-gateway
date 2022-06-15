@@ -137,7 +137,6 @@ def retrieve_fulfillment_location(merchant_host, shop_token, location_id):
     if payload_error_checker(r.json()):
         print("Error condition...", r.json())
         return {"errors": "Bad Request from merchant."}
-    print(r.json())
     return r.json()
 
 
