@@ -1,7 +1,6 @@
 import os
 from constants import *
 
-DEBUG_MODE = True
 VERBOSE = True
 
 if not 'WEBSITE_HOSTNAME' in os.environ:
