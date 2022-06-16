@@ -74,6 +74,25 @@ tenant_schema = TenantSchema()
 tenants_schema = TenantSchema(many=True)
 
 
+class ConfigCheck(Resource):
+    def get(self):
+        output = {
+            "Database URI": app.config["SQLALCHEMY_DATABASE_URI"],
+        }
+        if "VERBOSE" in app.config:
+            output.update({"Verbose": app.config["VERBOSE"]})
+        return output, 200
+
+    def post(self):
+        return "This resource only supports GET requests.", 405
+
+    def put(self):
+        return "This resource only supports GET requests.", 405
+
+    def delete(self):
+        return "This resource only supports GET requests.", 405
+
+
 class Tenant(Resource):
     """
     The Tenant resource: Simply deals with webhooks subscriptions upon info submission by an admin.
@@ -90,23 +109,24 @@ class Tenant(Resource):
             clean_host_url(args["merchant_url"]), INTEGRATION_GATEWAY, args["shop_token"], "fulfillments", "create")
         try:
             fulfillments_callback_created_json = fulfillments_callback_created.json()
+            webhook_id = fulfillments_callback_created_json["webhook"]["id"]
         except JSONDecodeError:
             return {"errors": "JSON could not be decoded."}, 400
+        except KeyError:
+            return {"errors": "Failure on webhook creation."}, 400
         except:
             return {"errors": "Something went wrong. Try again later."}, 400
-        print("Fulfillment Callback JSON: ",
-              fulfillments_callback_created_json)
-        webhook_id = fulfillments_callback_created_json["webhook"]["id"]
 
         url_cleaned = clean_host_url(args["merchant_url"])
         new_tenant = TenantTable(args["company_id"], retrieve_merchant_name(url_cleaned), url_cleaned,
                                  args["shop_token"], args["shop_api_secret"], webhook_id)
         db.session.add(new_tenant)
         db.session.commit()
-        print("Fulfillments Callback Response JSON: ",
-              fulfillments_callback_created_json)
-        print("Tenant string: ", str(new_tenant))
-        return {"fulfillments_callback_response": fulfillments_callback_created_json}, 200
+        if config.VERBOSE:
+            print("Callback Response JSON: ",
+                  fulfillments_callback_created_json)
+            print("Tenant string: ", str(new_tenant))
+        return fulfillments_callback_created_json, 200
 
     def put(self):  # Update tenant
         return "This resource only supports POST requests.", 405
@@ -146,12 +166,23 @@ class Task(Resource):
             ".")[0]  # https://{merchant_name}.myshopify.com
         fulfillment_id_header = request.headers.get("x-shopify-fulfillment-id")
         shopify_api_version = request.headers.get("x-shopify-api-version")
+
+        if config.VERBOSE:
+            print("Headers parsed:")
+            print("x-shopify-hmac-sha256 : ", hmac_hash)
+            print("x-shopify-shop-domain : ", merchant_url_noscheme)
+            print("Merchant name parsed : ", merchant_name)
+            print("x-shopify-fulfillment-id : ", fulfillment_id_header)
+            print("x-shopify-api-version : ", shopify_api_version)
+
         if (shopify_api_version != SHOPIFY_API_VERSION):
             print(
                 "WARNING: SHOPIFY API VERSION HAS CHANGED. PLEASE UPDATE GATEWAY ACCORDINGLY.")
         request_body = request.get_data()
         if not hmac_authenticate(hmac_hash, merchant_name, request_body):
             return "Failed Authentication. Invalid HMAC.", 403
+        if config.VERBOSE:
+            print("HMAC Authentication Successful.")
         company_record = TenantTable.query.filter(
             TenantTable.company_name == merchant_name).first()
 
@@ -166,7 +197,8 @@ class Task(Resource):
         # merchant_token = MERCHANT_TOKEN  # ONLY FOR TESTING
         task_payload = generate_task_payload(
             merchant_url, merchant_token, fulfillment_payload)
-
+        if config.VERBOSE:
+            print("Task Payload generated: ", task_payload)
         creation_response = create_task(
             FLEET_MANAGEMENT_URI_PROD, FLEET_AUTH_TOKEN_PROD, task_payload)
         try:
@@ -175,8 +207,9 @@ class Task(Resource):
             return {"errors": "Task Creation JSON could not be decoded."}, 500
         except:
             return {"errors": "Something went wrong with task creation. Try again later."}, 500
-        print("Creation Response JSON: ", creation_response_json)
-        return {"Creation Response JSON: ": creation_response_json}, 200
+        if config.VERBOSE:
+            print("Creation Response JSON: ", creation_response_json)
+        return creation_response_json, 200
 
     def put(self):
         return "This resource only supports POST requests.", 405
@@ -225,7 +258,8 @@ class Task_Update(Resource):
             return {"errors": "Update Response JSON could not be decoded."}, 400
         except:
             return {"errors": "Something went wrong with sending status update. Try again later."}, 400
-        print("Update Response JSON: ", update_response_json)
+        if config.VERBOSE:
+            print("Update Response JSON: ", update_response_json)
         return update_response_json, 200
 
     def put(self):
