@@ -146,8 +146,11 @@ class ConfigCheck(Resource):
     def get(self):
         output = {
             "SQLALCHEMY_DATABASE_URI": app.config["SQLALCHEMY_DATABASE_URI"],
-            "Full app.config dump": app.config
         }
+        if "VERBOSE" in app.config:
+            verbose = {"verbose out": app.config["VERBOSE"]}
+            output.update(verbose)
+
         return output, 200
 
     def post(self):
