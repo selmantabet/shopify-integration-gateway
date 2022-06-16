@@ -294,6 +294,8 @@ api.add_resource(Tenant, "/tenants")
 
 api.add_resource(TenantView, "/tenant")
 
+api.add_resource(ConfigCheck, "/config")
+
 
 def hmac_authenticate(hash_base64, name, payload):
     hash_decoded = base64.b64decode(hash_base64)
