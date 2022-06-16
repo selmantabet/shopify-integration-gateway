@@ -24,14 +24,31 @@ from callback_functions import *
 from helper_functions import *
 from status_mapper import *
 import json
+import os
+from azureconfig import deployment, production
 
 app = Flask(__name__)
 api = Api(app)
 
 # app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{POSTGRESQL_USER}:{POSTGRESQL_PASSWORD}@{POSTGRESQL_ADDRESS}/{POSTGRESQL_DB_NAME}"
-app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{POSTGRESQL_USER}:{POSTGRESQL_AZURE_PASSWORD}@{POSTGRESQL_HOST_AZURE}/{POSTGRESQL_AZURE_DB_NAME}"
+# app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{POSTGRESQL_USER}:{POSTGRESQL_AZURE_PASSWORD}@{POSTGRESQL_HOST_AZURE}/{POSTGRESQL_AZURE_DB_NAME}"
 
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# WEBSITE_HOSTNAME exists only in production environment
+if not 'WEBSITE_HOSTNAME' in os.environ:
+    # local development, where we'll use environment variables
+    print("Loading config.development and environment variables from .env file.")
+    app.config.from_object('azureconfig.development')
+else:
+    # production
+    print("Loading config.production.")
+    app.config.from_object('azureconfig.production')
+
+app.config.update(
+    SQLALCHEMY_DATABASE_URI=app.config.get('DATABASE_URI'),
+    SQLALCHEMY_TRACK_MODIFICATIONS=False,
+)
 
 db = SQLAlchemy(app)
 
