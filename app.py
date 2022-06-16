@@ -28,15 +28,12 @@ import json
 app = Flask(__name__)
 api = Api(app)
 
-# app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{POSTGRESQL_USER}:{POSTGRESQL_PASSWORD}@{POSTGRESQL_ADDRESS}/{POSTGRESQL_DB_NAME}"
-# app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{POSTGRESQL_USER}:{POSTGRESQL_AZURE_PASSWORD}@{POSTGRESQL_HOST_AZURE}/{POSTGRESQL_AZURE_DB_NAME}"
 
 app.config.from_object(config)
 app.config.update(
     SQLALCHEMY_DATABASE_URI=app.config.get('DATABASE_URI'),
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
 )
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
@@ -78,6 +75,7 @@ class ConfigCheck(Resource):
     def get(self):
         output = {
             "Database URI": app.config["SQLALCHEMY_DATABASE_URI"],
+            "SQLAlchemy Tracking": app.config["SQLALCHEMY_TRACK_MODIFICATIONS"]
         }
         if "VERBOSE" in app.config:
             output.update({"Verbose": app.config["VERBOSE"]})
