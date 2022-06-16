@@ -142,6 +142,24 @@ class Tenant(Resource):
         return {"fulfillments_callback_response": fulfillments_callback_deleted, "fleet_callback_response": fleet_callback_deleted}, 200
 
 
+class ConfigCheck(Resource):
+    def get(self):
+        output = {
+            "SQLALCHEMY_DATABASE_URI": app.config["SQLALCHEMY_DATABASE_URI"],
+            "Full app.config dump": app.config
+        }
+        return output
+
+    def post(self):
+        return "This resource only supports GET requests.", 405
+
+    def put(self):
+        return "This resource only supports GET requests.", 405
+
+    def delete(self):
+        return "This resource only supports GET requests.", 405
+
+
 class Task(Resource):
     """
     The Task resource: Creates tasks upon receiving fulfillment webhooks.
@@ -273,6 +291,8 @@ api.add_resource(Task_Update, "/taskscallback")
 api.add_resource(Tenant, "/tenants")
 
 api.add_resource(TenantView, "/tenant")
+
+api.add_resource(ConfigCheck, "/config")
 
 
 def hmac_authenticate(hash_base64, name, payload):
