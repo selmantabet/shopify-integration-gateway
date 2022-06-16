@@ -148,7 +148,7 @@ class ConfigCheck(Resource):
             "SQLALCHEMY_DATABASE_URI": app.config["SQLALCHEMY_DATABASE_URI"],
             "Full app.config dump": app.config
         }
-        return output
+        return output, 200
 
     def post(self):
         return "This resource only supports GET requests.", 405
