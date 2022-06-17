@@ -113,7 +113,7 @@ class Tenant(Resource):
         except KeyError:
             return {"errors": "Failure on webhook creation."}, 400
         except:
-            return {"errors": "Something went wrong. Try again later."}, 400
+            return {"errors": "Something went wrong. Try again later."}, 500
 
         url_cleaned = clean_host_url(args["merchant_url"])
         new_tenant = TenantTable(args["company_id"], retrieve_merchant_name(url_cleaned), url_cleaned,
