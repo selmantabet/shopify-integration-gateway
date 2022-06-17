@@ -18,7 +18,7 @@ def subscribe_fleet(fleet_management_url, fleet_token, callback_url):
     fleet_auth_header = {"Authorization": "Bearer " + fleet_token}
 
     payloads = []
-    for i in [2, 3, 4, 5]:
+    for i in [2, 3, 4, 5, 9]:
         payload = {
             "url": callback_host + "/taskscallback",
             "callbackTriggerId": i,
