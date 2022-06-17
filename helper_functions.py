@@ -6,6 +6,7 @@ Developed by Selman Tabet @ https://selman.io/
 These functions serve as the logic behind the main Flask server script.
 """
 
+import json
 import requests
 from constants import *
 from datetime import datetime, timedelta
@@ -163,4 +164,5 @@ def generate_metadata(merchant_host, payload):
     return output
 
 
-# print(retrieve_fulfillment_location(MERCHANT_HOST, MERCHANT_TOKEN, 69392335101))
+# print(json.dumps(retrieve_fulfillment_location(
+#     MERCHANT_HOST, MERCHANT_TOKEN, 69392335101), indent=4))

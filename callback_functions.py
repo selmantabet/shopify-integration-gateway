@@ -13,7 +13,7 @@ from constants import *
 def subscribe_fleet(fleet_management_url, fleet_token, callback_url):
     callback_host = callback_url.replace("https://", "")
     callback_host = callback_host.strip("/")
-    endpoint = f"/api/v1/company/callbacks/create"
+    endpoint = "/api/v1/company/callbacks/create"
 
     fleet_auth_header = {"Authorization": "Bearer " + fleet_token}
 
