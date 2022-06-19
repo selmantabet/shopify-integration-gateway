@@ -14,6 +14,15 @@ class ConfigCheck(Resource):
             output.update({"Verbose": app.config["VERBOSE"]})
         if "WEBSITE_HOSTNAME" in os.environ:
             output.update({"Hostname": os.environ["WEBSITE_HOSTNAME"]})
+        if "FLEET_MANAGEMENT_URI" in os.environ:
+            output.update({"Fleet URL": os.environ["FLEET_MANAGEMENT_URI"]})
+        else:
+            output.update({"Fleet URL": "None parsed."})
+        if "FLEET_AUTH_TOKEN" in os.environ:
+            output.update({"Fleet Token": os.environ["FLEET_AUTH_TOKEN"]})
+        else:
+            output.update({"Fleet Token": "None parsed."})
+
         return output, 200
 
     def post(self):
