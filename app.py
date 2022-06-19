@@ -5,31 +5,38 @@ Developed by Selman Tabet @ https://selman.io/
 ------------------------------------------------
 Developed for FalconFlex - Snoonu Technologies.
 """
-import hmac
-import base64
-import hashlib
 
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_restful import Api, Resource
 from requests import JSONDecodeError
-from constants_prod import *
-import config
-
-from parsers import *
-from rest_functions import *
-from webhook_functions import *
-from callback_functions import *
-from helper_functions import *
-from status_mapper import *
+from env.constants_prod import *
+from config import cfg
+from utils.hmac_auth import *
+from utils.parsers import *
+from utils.rest_functions import *
+from utils.webhook_functions import *
+from utils.callback_functions import *
+from utils.helper_functions import *
+from utils.status_mapper import *
 import json
+from dotenv import load_dotenv
+import os
+
+cwd = os.getcwd()
+env_path = os.path.join(cwd, "env", "vars.env")
+load_dotenv(dotenv_path=env_path)
+
+print("env vars initialized from main app")
+
+verbose = (os.getenv('VERBOSE', 'False') == 'True')
 
 app = Flask(__name__)
 api = Api(app)
 
 
-app.config.from_object(config)
+app.config.from_object(cfg)
 app.config.update(
     SQLALCHEMY_DATABASE_URI=app.config.get('DATABASE_URI'),
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
@@ -75,10 +82,13 @@ class ConfigCheck(Resource):
     def get(self):
         output = {
             "Database URI": app.config["SQLALCHEMY_DATABASE_URI"],
-            "SQLAlchemy Tracking": app.config["SQLALCHEMY_TRACK_MODIFICATIONS"]
+            "SQLAlchemy Tracking": app.config["SQLALCHEMY_TRACK_MODIFICATIONS"],
+            "Time Buffer": os.environ["TIME_BUFFER_MINUTES"],
         }
         if "VERBOSE" in app.config:
             output.update({"Verbose": app.config["VERBOSE"]})
+        if "WEBSITE_HOSTNAME" in os.environ:
+            output.update({"Hostname": app.config["WEBSITE_HOSTNAME"]})
         return output, 200
 
     def post(self):
@@ -120,7 +130,7 @@ class Tenant(Resource):
                                  args["shop_token"], args["shop_api_secret"], webhook_id)
         db.session.add(new_tenant)
         db.session.commit()
-        if config.VERBOSE:
+        if verbose:
             print("Callback Response JSON: ",
                   fulfillments_callback_created_json)
             print("Tenant string: ", str(new_tenant))
@@ -165,7 +175,7 @@ class Task(Resource):
         fulfillment_id_header = request.headers.get("x-shopify-fulfillment-id")
         shopify_api_version = request.headers.get("x-shopify-api-version")
 
-        if config.VERBOSE:
+        if verbose:
             print("Headers parsed:")
             print("x-shopify-hmac-sha256 : ", hmac_hash)
             print("x-shopify-shop-domain : ", merchant_url_noscheme)
@@ -179,7 +189,7 @@ class Task(Resource):
         request_body = request.get_data()
         if not hmac_authenticate(hmac_hash, merchant_name, request_body):
             return "Failed Authentication. Invalid HMAC.", 403
-        if config.VERBOSE:
+        if verbose:
             print("HMAC Authentication Successful.")
         company_record = TenantTable.query.filter(
             TenantTable.company_name == merchant_name).first()
@@ -195,7 +205,7 @@ class Task(Resource):
         # merchant_token = MERCHANT_TOKEN  # ONLY FOR TESTING
         task_payload = generate_task_payload(
             merchant_url, merchant_token, fulfillment_payload)
-        if config.VERBOSE:
+        if verbose:
             print("Task Payload generated: ", task_payload)
         creation_response = create_task(
             FLEET_MANAGEMENT_URI_PROD, FLEET_AUTH_TOKEN_PROD, task_payload)
@@ -205,7 +215,7 @@ class Task(Resource):
             return {"errors": "Task Creation JSON could not be decoded."}, 500
         except:
             return {"errors": "Something went wrong with task creation. Try again later."}, 500
-        if config.VERBOSE:
+        if verbose:
             print("Creation Response JSON: ", creation_response_json)
         return creation_response_json, 200
 
@@ -256,7 +266,7 @@ class Task_Update(Resource):
             return {"errors": "Update Response JSON could not be decoded."}, 400
         except:
             return {"errors": "Something went wrong with sending status update. Try again later."}, 400
-        if config.VERBOSE:
+        if verbose:
             print("Update Response JSON: ", update_response_json)
         return update_response_json, 200
 
@@ -295,19 +305,6 @@ api.add_resource(Tenant, "/tenants")
 api.add_resource(TenantView, "/tenant")
 
 api.add_resource(ConfigCheck, "/config")
-
-
-def hmac_authenticate(hash_base64, name, payload):
-    hash_decoded = base64.b64decode(hash_base64)
-    api_secret = TenantTable.query.filter(
-        TenantTable.company_name == name).first().merchant_api_secret
-    api_secret_bytes = str.encode(api_secret)
-    h = hmac.new(api_secret_bytes, payload, hashlib.sha256)
-
-    # Comparing hashes, using compare_digest to avoid timing attacks.
-    if hmac.compare_digest(hash_decoded, h.digest()):
-        return True
-    return False
 
 
 if __name__ == "__main__":

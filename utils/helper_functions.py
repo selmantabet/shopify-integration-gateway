@@ -6,11 +6,17 @@ Developed by Selman Tabet @ https://selman.io/
 These functions serve as the logic behind the main Flask server script.
 """
 
+import os
 import requests
 from env.constants import *
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
+import os
 
-from constants_prod import TIME_BUFFER_MINUTES
+cwd = os.getcwd()
+env_path = os.path.join(cwd, "env", "vars.env")
+load_dotenv(dotenv_path=env_path)
+# import json
 
 
 def clean_host_url(url):
@@ -142,7 +148,7 @@ def retrieve_fulfillment_location(merchant_host, shop_token, location_id):
 
 def determine_dates():
     pickupByUtc_dt = datetime.utcnow()
-    time_buffer = timedelta(minutes=TIME_BUFFER_MINUTES)
+    time_buffer = timedelta(minutes=int(os.getenv("TIME_BUFFER_MINUTES", 3)))
     pickupByUtc_dt = pickupByUtc_dt + time_buffer
     delivery_duration = timedelta(hours=1)
     deliverByUtc_dt = pickupByUtc_dt + delivery_duration
