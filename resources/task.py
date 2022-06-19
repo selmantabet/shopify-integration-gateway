@@ -1,14 +1,9 @@
-from flask import request
 from flask_restful import Resource
-from requests import JSONDecodeError
 from env.constants_prod import SHOPIFY_API_VERSION, FLEET_MANAGEMENT_URI_PROD, FLEET_AUTH_TOKEN_PROD
 from utils.hmac_auth import hmac_authenticate
 from utils.helper_functions import generate_task_payload
 from utils.rest_functions import create_task
-import os
 import json
-
-verbose = (os.getenv('VERBOSE', 'False') == 'True')
 
 
 class Task(Resource):
@@ -20,7 +15,10 @@ class Task(Resource):
         return "This resource only supports POST requests.", 405
 
     def post(self):  # Create a new task
+        import os
+        verbose = (os.getenv('VERBOSE', 'False') == 'True')
         # Parsing headers...
+        from flask import request
         hmac_hash = request.headers.get("x-shopify-hmac-sha256")
         merchant_url_noscheme = request.headers.get("x-shopify-shop-domain")
         merchant_name = merchant_url_noscheme.split(
@@ -63,6 +61,7 @@ class Task(Resource):
             print("Task Payload generated: ", task_payload)
         creation_response = create_task(
             FLEET_MANAGEMENT_URI_PROD, FLEET_AUTH_TOKEN_PROD, task_payload)
+        from requests import JSONDecodeError
         try:
             creation_response_json = creation_response.json()
         except JSONDecodeError:

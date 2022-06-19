@@ -1,9 +1,9 @@
 from flask_restful import Resource
-import os
 
 
 class ConfigCheck(Resource):
     def get(self):
+        import os
         from app import app
         output = {
             "Database URI": app.config["SQLALCHEMY_DATABASE_URI"],

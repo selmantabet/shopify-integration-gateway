@@ -5,7 +5,6 @@ Developed by Selman Tabet @ https://selman.io/
 """
 
 import requests
-from env.constants import *
 
 
 def create_task(fleet_management_url, fleet_token, task_payload):

@@ -1,15 +1,8 @@
 from flask_restful import Resource
 
-from requests import JSONDecodeError
-import os
-
-from flask import request
-
 from utils.helper_functions import clean_host_url
 from utils.status_mapper import mapping_dict
 from utils.rest_functions import send_status_update
-
-verbose = (os.getenv('VERBOSE', 'False') == 'True')
 
 
 class Task_Update(Resource):
@@ -17,6 +10,9 @@ class Task_Update(Resource):
         return "This resource only supports POST requests.", 405
 
     def post(self):
+        from flask import request
+        import os
+        verbose = (os.getenv('VERBOSE', 'False') == 'True')
         try:
             task_update_payload_raw = request.get_json()
         except JSONDecodeError:
@@ -46,6 +42,7 @@ class Task_Update(Resource):
         mapped_status = mapping_dict[status]
         update_response = send_status_update(
             merchant_url_cleaned, shop_token, order_id, fulfillment_id, mapped_status)
+        from requests import JSONDecodeError
         try:
             update_response_json = update_response.json()
         except JSONDecodeError:

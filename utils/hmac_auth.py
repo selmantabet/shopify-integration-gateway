@@ -3,7 +3,6 @@ import base64
 import hashlib
 
 
-
 def hmac_authenticate(hash_base64, name, payload):
     hash_decoded = base64.b64decode(hash_base64)
     from app import TenantTable

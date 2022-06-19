@@ -8,7 +8,6 @@ For now, FalconFlex webhook (or as we call it, callback) code are in the callbac
 """
 
 import requests
-from env.constants import *
 # import json
 
 

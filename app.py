@@ -6,32 +6,25 @@ Developed by Selman Tabet @ https://selman.io/
 Developed for FalconFlex - Snoonu Technologies.
 """
 
-from flask import Flask, request
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_restful import Api
-from env.constants_prod import *
 from config import cfg
 from resources.config_check import ConfigCheck
 from resources.task_update import Task_Update
 from resources.tenant_view import TenantView
 from resources.tenant import Tenant
 from resources.task import Task
-from utils.hmac_auth import *
-from utils.parsers import *
-from utils.rest_functions import *
-from utils.webhook_functions import *
-from utils.callback_functions import *
-from utils.helper_functions import *
-from utils.status_mapper import *
 from dotenv import load_dotenv
 import os
 
 cwd = os.getcwd()
 env_path = os.path.join(cwd, "env", "vars.env")
-load_dotenv(dotenv_path=env_path)
-
-print("env vars initialized from main app")
+print("cfg env path: ", env_path)
+if (os.path.exists(env_path)):
+    load_dotenv(dotenv_path=env_path)
+    print("env vars initialized from main app")
 
 verbose = (os.getenv('VERBOSE', 'False') == 'True')
 

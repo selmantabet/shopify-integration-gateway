@@ -6,16 +6,8 @@ Developed by Selman Tabet @ https://selman.io/
 These functions serve as the logic behind the main Flask server script.
 """
 
-import os
 import requests
-from env.constants import *
 from datetime import datetime, timedelta
-from dotenv import load_dotenv
-import os
-
-cwd = os.getcwd()
-env_path = os.path.join(cwd, "env", "vars.env")
-load_dotenv(dotenv_path=env_path)
 # import json
 
 
@@ -89,7 +81,7 @@ def generate_task_payload(merchant_host, shop_token, fulfillment_payload):
         origin_phone = "000000000"
     if destination_phone == "":
         destination_phone = "000000000"
-
+    import os
     task_payload = {
         "transportTypeId": 1,  # could we determine this instead?
         "amountToBeCollected": 0.0,  # Webhook does not include this.
@@ -103,8 +95,8 @@ def generate_task_payload(merchant_host, shop_token, fulfillment_payload):
             "Name": location_data["name"],
             "PhoneNumber": origin_phone,
             # Lat-Longs are not normally provided, you need to use the Google Maps API for this.
-            "Latitude": LATITUDE_TEST,
-            "Longitude": LONGITUDE_TEST,
+            "Latitude": os.environ["LATITUDE_TEST"],
+            "Longitude": os.environ["LONGITUDE_TEST"],
         },
         "delivery": {
             "Address": str(fulfillment_payload["destination"]["address1"]) + " \n " + str(fulfillment_payload["destination"]["address2"]),
@@ -148,6 +140,7 @@ def retrieve_fulfillment_location(merchant_host, shop_token, location_id):
 
 def determine_dates():
     pickupByUtc_dt = datetime.utcnow()
+    import os
     time_buffer = timedelta(minutes=int(os.getenv("TIME_BUFFER_MINUTES", 3)))
     pickupByUtc_dt = pickupByUtc_dt + time_buffer
     delivery_duration = timedelta(hours=1)

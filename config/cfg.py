@@ -3,9 +3,11 @@ import os
 
 cwd = os.getcwd()
 env_path = os.path.join(cwd, "env", "vars.env")
-load_dotenv(dotenv_path=env_path)
+print("cfg env path: ", env_path)
+if (os.path.exists(env_path)):
+    load_dotenv(dotenv_path=env_path)
+    print("env vars initialized from config")
 
-print("env vars initialized from config")
 
 VERBOSE = (os.getenv('VERBOSE', 'False') == 'True')
 
@@ -31,5 +33,6 @@ else:
         dbhost=os.environ['DBHOST'] + ".postgres.database.azure.com",
         dbname=os.environ['DBNAME']
     )
+    # INTEGRATION_GATEWAY_URI =
     if VERBOSE:
         print(DATABASE_URI)

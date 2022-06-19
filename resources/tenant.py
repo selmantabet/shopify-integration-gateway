@@ -3,10 +3,6 @@ from env.constants_prod import INTEGRATION_GATEWAY
 from utils.parsers import tenant_post_args
 from utils.helper_functions import clean_host_url, retrieve_merchant_name
 from utils.webhook_functions import subscribe_merchant
-from requests import JSONDecodeError
-import os
-
-verbose = (os.getenv('VERBOSE', 'False') == 'True')
 
 
 class Tenant(Resource):
@@ -20,6 +16,10 @@ class Tenant(Resource):
         return "This resource only supports POST requests.", 405
 
     def post(self):  # Create new tenant
+        from requests import JSONDecodeError
+        import os
+
+        verbose = (os.getenv('VERBOSE', 'False') == 'True')
         args = tenant_post_args.parse_args()
         fulfillments_callback_created = subscribe_merchant(
             clean_host_url(args["merchant_url"]), INTEGRATION_GATEWAY, args["shop_token"], "fulfillments", "create")
@@ -39,6 +39,7 @@ class Tenant(Resource):
                                  args["shop_token"], args["shop_api_secret"], webhook_id)
         db.session.add(new_tenant)
         db.session.commit()
+
         if verbose:
             print("Callback Response JSON: ",
                   fulfillments_callback_created_json)
