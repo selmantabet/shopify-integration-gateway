@@ -1,8 +1,10 @@
 from flask_restful import Resource
-from env.constants_prod import INTEGRATION_GATEWAY
+# from env.constants_prod import INTEGRATION_GATEWAY
 from utils.parsers import tenant_post_args
 from utils.helper_functions import clean_host_url, retrieve_merchant_name
 from utils.webhook_functions import subscribe_merchant
+
+INTEGRATION_GATEWAY = "https://integration-gateway.azurewebsites.net"
 
 
 class Tenant(Resource):
