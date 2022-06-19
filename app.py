@@ -9,10 +9,14 @@ Developed for FalconFlex - Snoonu Technologies.
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-from flask_restful import Api, Resource
-from requests import JSONDecodeError
+from flask_restful import Api
 from env.constants_prod import *
 from config import cfg
+from resources.config_check import ConfigCheck
+from resources.task_update import Task_Update
+from resources.tenant_view import TenantView
+from resources.tenant import Tenant
+from resources.task import Task
 from utils.hmac_auth import *
 from utils.parsers import *
 from utils.rest_functions import *
@@ -20,7 +24,6 @@ from utils.webhook_functions import *
 from utils.callback_functions import *
 from utils.helper_functions import *
 from utils.status_mapper import *
-import json
 from dotenv import load_dotenv
 import os
 
@@ -76,222 +79,6 @@ class TenantSchema(ma.Schema):
 
 tenant_schema = TenantSchema()
 tenants_schema = TenantSchema(many=True)
-
-
-class ConfigCheck(Resource):
-    def get(self):
-        output = {
-            "Database URI": app.config["SQLALCHEMY_DATABASE_URI"],
-            "SQLAlchemy Tracking": app.config["SQLALCHEMY_TRACK_MODIFICATIONS"],
-            "Time Buffer": os.environ["TIME_BUFFER_MINUTES"],
-        }
-        if "VERBOSE" in app.config:
-            output.update({"Verbose": app.config["VERBOSE"]})
-        if "WEBSITE_HOSTNAME" in os.environ:
-            output.update({"Hostname": app.config["WEBSITE_HOSTNAME"]})
-        return output, 200
-
-    def post(self):
-        return "This resource only supports GET requests.", 405
-
-    def put(self):
-        return "This resource only supports GET requests.", 405
-
-    def delete(self):
-        return "This resource only supports GET requests.", 405
-
-
-class Tenant(Resource):
-    """
-    The Tenant resource: Simply deals with webhooks subscriptions upon info submission by an admin.
-
-    FalconFlex callbacks are still not tested, need the right credentials for that.
-    """
-
-    def get(self):  # Get all tenant callbacks
-        return "This resource only supports POST requests.", 405
-
-    def post(self):  # Create new tenant
-        args = tenant_post_args.parse_args()
-        fulfillments_callback_created = subscribe_merchant(
-            clean_host_url(args["merchant_url"]), INTEGRATION_GATEWAY, args["shop_token"], "fulfillments", "create")
-        try:
-            fulfillments_callback_created_json = fulfillments_callback_created.json()
-            webhook_id = fulfillments_callback_created_json["webhook"]["id"]
-        except JSONDecodeError:
-            return {"errors": "JSON could not be decoded."}, 400
-        except KeyError:
-            return {"errors": "Failure on webhook creation."}, 400
-        except:
-            return {"errors": "Something went wrong. Try again later."}, 500
-
-        url_cleaned = clean_host_url(args["merchant_url"])
-        new_tenant = TenantTable(args["company_id"], retrieve_merchant_name(url_cleaned), url_cleaned,
-                                 args["shop_token"], args["shop_api_secret"], webhook_id)
-        db.session.add(new_tenant)
-        db.session.commit()
-        if verbose:
-            print("Callback Response JSON: ",
-                  fulfillments_callback_created_json)
-            print("Tenant string: ", str(new_tenant))
-        return fulfillments_callback_created_json, 200
-
-    def put(self):  # Update tenant
-        return "This resource only supports POST requests.", 405
-
-    # Delete tenant - NOT TESTED - FALCONFLEX API RESOURCE REQUIRED.
-    def delete(self):
-        return "This resource does not yet support DELETE requests.", 405
-        args = tenant_delete_args.parse_args()
-        merchant_url = clean_host_url(args["merchant_url"])
-        company_record = TenantTable.query.filter(
-            TenantTable.url == merchant_url).first()
-        shop_token = company_record.merchant_token
-        webhook_id = company_record.merchant_webhook_id
-        fulfillments_callback_deleted = unsubscribe_merchant(
-            merchant_url, webhook_id, shop_token)
-        company_id = company_record.company_id
-        fleet_token = company_record.fleet_token
-        callback_id = company_record.fleet_callback_id
-        fleet_callback_deleted = unsubscribe_fleet(
-            args["fleet_url"], company_id, callback_id, fleet_token)
-        return {"fulfillments_callback_response": fulfillments_callback_deleted, "fleet_callback_response": fleet_callback_deleted}, 200
-
-
-class Task(Resource):
-    """
-    The Task resource: Creates tasks upon receiving fulfillment webhooks.
-    """
-
-    def get(self):  # Get all tasks
-        return "This resource only supports POST requests.", 405
-
-    def post(self):  # Create a new task
-        # Parsing headers...
-        hmac_hash = request.headers.get("x-shopify-hmac-sha256")
-        merchant_url_noscheme = request.headers.get("x-shopify-shop-domain")
-        merchant_name = merchant_url_noscheme.split(
-            ".")[0]  # https://{merchant_name}.myshopify.com
-        fulfillment_id_header = request.headers.get("x-shopify-fulfillment-id")
-        shopify_api_version = request.headers.get("x-shopify-api-version")
-
-        if verbose:
-            print("Headers parsed:")
-            print("x-shopify-hmac-sha256 : ", hmac_hash)
-            print("x-shopify-shop-domain : ", merchant_url_noscheme)
-            print("Merchant name parsed : ", merchant_name)
-            print("x-shopify-fulfillment-id : ", fulfillment_id_header)
-            print("x-shopify-api-version : ", shopify_api_version)
-
-        if (shopify_api_version != SHOPIFY_API_VERSION):
-            print(
-                "WARNING: SHOPIFY API VERSION HAS CHANGED. PLEASE UPDATE GATEWAY ACCORDINGLY.")
-        request_body = request.get_data()
-        if not hmac_authenticate(hmac_hash, merchant_name, request_body):
-            return "Failed Authentication. Invalid HMAC.", 403
-        if verbose:
-            print("HMAC Authentication Successful.")
-        company_record = TenantTable.query.filter(
-            TenantTable.company_name == merchant_name).first()
-
-        merchant_url = company_record.url
-        merchant_token = company_record.merchant_token
-
-        fulfillment_payload = json.loads(request_body)
-        # THIS MUST ALWAYS PASS. Since HMAC passed, request integrity should be fine.
-        assert(fulfillment_payload["id"] == fulfillment_id_header,
-               "Fatal error: Fulfillment ID Header not equal to body fulfillment ID.")
-
-        # merchant_token = MERCHANT_TOKEN  # ONLY FOR TESTING
-        task_payload = generate_task_payload(
-            merchant_url, merchant_token, fulfillment_payload)
-        if verbose:
-            print("Task Payload generated: ", task_payload)
-        creation_response = create_task(
-            FLEET_MANAGEMENT_URI_PROD, FLEET_AUTH_TOKEN_PROD, task_payload)
-        try:
-            creation_response_json = creation_response.json()
-        except JSONDecodeError:
-            return {"errors": "Task Creation JSON could not be decoded."}, 500
-        except:
-            return {"errors": "Something went wrong with task creation. Try again later."}, 500
-        if verbose:
-            print("Creation Response JSON: ", creation_response_json)
-        return creation_response_json, 200
-
-    def put(self):
-        return "This resource only supports POST requests.", 405
-
-    def delete(self):
-        return "This resource only supports POST requests.", 405
-
-
-class Task_Update(Resource):
-    def get(self):
-        return "This resource only supports POST requests.", 405
-
-    def post(self):
-        try:
-            task_update_payload_raw = request.get_json()
-        except JSONDecodeError:
-            return {"errors": "Task Update Payload JSON could not be decoded."}, 400
-        except:
-            return {"errors": "Something went wrong with parsing incoming data."}, 400
-        task_update_payload = task_update_payload_raw["Data"]  # Cleaned
-        task_update_metafields = task_update_payload["MetaDataFields"]
-        order_id = task_update_payload["ClientGeneratedId"]
-
-        # Check this once metadata structure is finalized.
-        for i in task_update_metafields:
-            if i["Key"] == "order_id":
-                order_id = i["Value"]
-            elif i["Key"] == "fulfillment_id":
-                fulfillment_id = i["Value"]
-            elif i["Key"] == "merchant_url":
-                merchant_url = i["Value"]
-            else:
-                return {"errors": "Malformed metadata."}, 400
-
-        merchant_url_cleaned = clean_host_url(merchant_url)
-        company_record = TenantTable.query.filter(
-            TenantTable.url == merchant_url_cleaned).first()
-        shop_token = company_record.merchant_token
-        status = task_update_payload["TaskStatus"]
-        mapped_status = mapping_dict[status]
-        update_response = send_status_update(
-            merchant_url_cleaned, shop_token, order_id, fulfillment_id, mapped_status)
-        try:
-            update_response_json = update_response.json()
-        except JSONDecodeError:
-            return {"errors": "Update Response JSON could not be decoded."}, 400
-        except:
-            return {"errors": "Something went wrong with sending status update. Try again later."}, 400
-        if verbose:
-            print("Update Response JSON: ", update_response_json)
-        return update_response_json, 200
-
-    def put(self):
-        return "This resource only supports POST requests.", 405
-
-    def delete(self):
-        return "This resource only supports POST requests.", 405
-
-
-class TenantView(Resource):
-    def get(self):  # Get all tenant callbacks
-        args = tenant_get_args.parse_args()
-        company_record = TenantTable.query.filter(
-            TenantTable.company_id == args["company_id"]).first()
-        return str(company_record), 200
-
-    def post(self):
-        return "This resource only supports GET requests.", 405
-
-    def put(self):
-        return "This resource only supports GET requests.", 405
-
-    def delete(self):
-        return "This resource only supports GET requests.", 405
 
 
 """------ root/host in testing is INTEGRATION_GATEWAY_TEST ------"""

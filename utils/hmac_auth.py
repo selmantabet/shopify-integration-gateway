@@ -1,11 +1,12 @@
 import hmac
 import base64
 import hashlib
-from app import TenantTable
+
 
 
 def hmac_authenticate(hash_base64, name, payload):
     hash_decoded = base64.b64decode(hash_base64)
+    from app import TenantTable
     api_secret = TenantTable.query.filter(
         TenantTable.company_name == name).first().merchant_api_secret
     api_secret_bytes = str.encode(api_secret)
