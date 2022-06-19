@@ -66,7 +66,7 @@ def generate_task_payload(merchant_host, shop_token, fulfillment_payload):
         }  # Webhooks do not include product images, but we can fetch them ourselves if need be.
         task_items.append(item)
 
-    datesUtc = determine_dates(fulfillment_payload)
+    datesUtc = determine_dates()
 
     # Convert the provided location_id to the pickup address
     location_data_response = retrieve_fulfillment_location(
