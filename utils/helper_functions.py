@@ -142,6 +142,9 @@ def determine_dates():
     pickupByUtc_dt = datetime.utcnow()
     import os
     time_buffer = timedelta(minutes=int(os.getenv("TIME_BUFFER_MINUTES", 3)))
+    verbose = (os.getenv('VERBOSE', 'False') == 'True')
+    if verbose:
+        print("Time Buffer Selected: ", time_buffer)
     pickupByUtc_dt = pickupByUtc_dt + time_buffer
     delivery_duration = timedelta(hours=1)
     deliverByUtc_dt = pickupByUtc_dt + delivery_duration
