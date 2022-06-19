@@ -6,9 +6,8 @@ Developed by Selman Tabet @ https://selman.io/
 These functions serve as the logic behind the main Flask server script.
 """
 
-import json
 import requests
-from constants import *
+from env.constants import *
 from datetime import datetime, timedelta
 
 from constants_prod import TIME_BUFFER_MINUTES
@@ -94,7 +93,7 @@ def generate_task_payload(merchant_host, shop_token, fulfillment_payload):
         "deliverByUtc": datesUtc[1],
         "pickup": {
             # Enforce str type via typecast as sometimes Address2 is NoneType
-            "Address": str(location_data["address1"]) + "\n" + str(location_data["address2"]),
+            "Address": str(location_data["address1"]) + " \n " + str(location_data["address2"]),
             "Name": location_data["name"],
             "PhoneNumber": origin_phone,
             # Lat-Longs are not normally provided, you need to use the Google Maps API for this.
@@ -102,7 +101,7 @@ def generate_task_payload(merchant_host, shop_token, fulfillment_payload):
             "Longitude": LONGITUDE_TEST,
         },
         "delivery": {
-            "Address": str(fulfillment_payload["destination"]["address1"]) + "\n" + str(fulfillment_payload["destination"]["address2"]),
+            "Address": str(fulfillment_payload["destination"]["address1"]) + " \n " + str(fulfillment_payload["destination"]["address2"]),
             "Name": fulfillment_payload["destination"]["name"],
             "PhoneNumber": destination_phone,
             # Lat-Longs are not provided, you need to use the Google Maps API for this.

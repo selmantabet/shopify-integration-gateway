@@ -7,7 +7,7 @@ This is where webhook calls for FalconFlex are made.
 """
 
 import requests
-from constants import *
+from env.constants import *
 
 
 def subscribe_fleet(fleet_management_url, fleet_token, callback_url):

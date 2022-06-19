@@ -8,8 +8,8 @@ For now, FalconFlex webhook (or as we call it, callback) code are in the callbac
 """
 
 import requests
-from constants import *
-import json
+from env.constants import *
+# import json
 
 
 def subscribe_merchant(merchant_host, integration_endpoint, shop_token, category, trigger):
