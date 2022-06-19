@@ -1,10 +1,7 @@
 from flask_restful import Resource
-# from env.constants_prod import INTEGRATION_GATEWAY
 from utils.parsers import tenant_post_args
 from utils.helper_functions import clean_host_url, retrieve_merchant_name
 from utils.webhook_functions import subscribe_merchant
-
-INTEGRATION_GATEWAY = "https://integration-gateway.azurewebsites.net"
 
 
 class Tenant(Resource):
@@ -20,11 +17,15 @@ class Tenant(Resource):
     def post(self):  # Create new tenant
         from requests import JSONDecodeError
         import os
-
+        if "WEBSITE_HOSTNAME" in os.environ:
+            gateway_host = os.environ["WEBSITE_HOSTNAME"]
+        else:
+            gateway_host = "integration-gateway.azurewebsites.net"
+        gateway_url = "https://" + gateway_host
         verbose = (os.getenv('VERBOSE', 'False') == 'True')
         args = tenant_post_args.parse_args()
         fulfillments_callback_created = subscribe_merchant(
-            clean_host_url(args["merchant_url"]), INTEGRATION_GATEWAY, args["shop_token"], "fulfillments", "create")
+            clean_host_url(args["merchant_url"]), gateway_url, args["shop_token"], "fulfillments", "create")
         try:
             fulfillments_callback_created_json = fulfillments_callback_created.json()
             webhook_id = fulfillments_callback_created_json["webhook"]["id"]

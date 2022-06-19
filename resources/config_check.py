@@ -13,7 +13,7 @@ class ConfigCheck(Resource):
         if "VERBOSE" in app.config:
             output.update({"Verbose": app.config["VERBOSE"]})
         if "WEBSITE_HOSTNAME" in os.environ:
-            output.update({"Hostname": app.config["WEBSITE_HOSTNAME"]})
+            output.update({"Hostname": os.environ["WEBSITE_HOSTNAME"]})
         return output, 200
 
     def post(self):
