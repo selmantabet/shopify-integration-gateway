@@ -63,10 +63,16 @@ class Task(Resource):
             os.environ["FLEET_MANAGEMENT_URI"], os.environ["FLEET_AUTH_TOKEN"], task_payload)
         from requests import JSONDecodeError
         try:
+            if verbose:
+                print("Attempting JSON decode.")
             creation_response_json = creation_response.json()
         except JSONDecodeError:
+            if verbose:
+                print("JSON decode error.")
             return {"errors": "Task Creation JSON could not be decoded."}, 500
         except:
+            if verbose:
+                print("Some other error.")
             return {"errors": "Something went wrong with task creation. Try again later."}, 500
         if verbose:
             print("Creation Response JSON: ", creation_response_json)
