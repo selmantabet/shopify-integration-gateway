@@ -65,6 +65,7 @@ class Task(Resource):
         try:
             if verbose:
                 print("Attempting JSON decode.")
+                print("Dump: ", creation_response.content)
             creation_response_json = creation_response.json()
         except JSONDecodeError:
             if verbose:
