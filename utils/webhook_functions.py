@@ -8,7 +8,6 @@ For now, FalconFlex webhook (or as we call it, callback) code are in the callbac
 """
 
 import requests
-# import json
 
 
 def subscribe_merchant(merchant_host, integration_endpoint, shop_token, category, trigger):
@@ -52,9 +51,11 @@ def retrieve_events(merchant_host, shop_token, order_id, fulfillment_id):
     return response.json()
 
 
+# MERCHANT_HOST = "https://chaoscodes.myshopify.com/"
+# MERCHANT_TOKEN = "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"
 # print(json.dumps(retrieve_events(MERCHANT_HOST,
 #       MERCHANT_TOKEN, 4782097891581, 4291636363517), indent=4))
-# print(json.dumps(subscribe_merchant(MERCHANT_HOST, INTEGRATION_GATEWAY_TEST,
+# print(json.dumps(subscribe_merchant(MERCHANT_HOST, INTEGRATION_GATEWAY,
 #       MERCHANT_TOKEN, "fulfillments", "create"), indent=4))
-# print(unsubscribe_merchant(MERCHANT_HOST, 1144080564477, MERCHANT_TOKEN))
+# print(unsubscribe_merchant(MERCHANT_HOST, 1144506810621, MERCHANT_TOKEN))
 # print(retrieve_webhooks_merchant(MERCHANT_HOST, MERCHANT_TOKEN))

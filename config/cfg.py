@@ -11,7 +11,13 @@ if (os.path.exists(env_path)):
 
 VERBOSE = (os.getenv('VERBOSE', 'False') == 'True')
 
-if not 'WEBSITE_HOSTNAME' in os.environ:
+if "AZURE_DB" in os.environ:
+    print("Loaded DB creation parameters...")
+    DATABASE_URI = os.environ["AZURE_DB"]
+    if VERBOSE:
+        print(DATABASE_URI)
+
+elif not 'WEBSITE_HOSTNAME' in os.environ:
     # local development
     print("Loading development parameters...")
     DATABASE_URI = 'postgresql://{dbuser}:{dbpass}@{dbhost}/{dbname}'.format(
