@@ -1,5 +1,5 @@
 from flask_restful import Resource
-from env.constants_prod import SHOPIFY_API_VERSION, FLEET_MANAGEMENT_URI_PROD, FLEET_AUTH_TOKEN_PROD
+# from env.constants_prod import SHOPIFY_API_VERSION, FLEET_MANAGEMENT_URI_PROD, FLEET_AUTH_TOKEN_PROD
 from utils.hmac_auth import hmac_authenticate
 from utils.helper_functions import generate_task_payload
 from utils.rest_functions import create_task
@@ -34,7 +34,7 @@ class Task(Resource):
             print("x-shopify-fulfillment-id : ", fulfillment_id_header)
             print("x-shopify-api-version : ", shopify_api_version)
 
-        if (shopify_api_version != SHOPIFY_API_VERSION):
+        if (shopify_api_version != os.environ["SHOPIFY_API_VERSION"]):
             print(
                 "WARNING: SHOPIFY API VERSION HAS CHANGED. PLEASE UPDATE GATEWAY ACCORDINGLY.")
         request_body = request.get_data()
@@ -60,7 +60,7 @@ class Task(Resource):
         if verbose:
             print("Task Payload generated: ", task_payload)
         creation_response = create_task(
-            FLEET_MANAGEMENT_URI_PROD, FLEET_AUTH_TOKEN_PROD, task_payload)
+            os.environ["FLEET_MANAGEMENT_URI"], os.environ["FLEET_AUTH_TOKEN"], task_payload)
         from requests import JSONDecodeError
         try:
             creation_response_json = creation_response.json()
