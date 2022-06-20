@@ -34,6 +34,7 @@ class Task_Update(Resource):
             else:
                 return {"errors": "Malformed metadata."}, 400
         if verbose:
+            print("Task Payload Dump: ", task_update_payload)
             print("Order ID: ", order_id)
             print("Fulfillment ID: ", fulfillment_id)
             print("Merchant URL: ", merchant_url)
