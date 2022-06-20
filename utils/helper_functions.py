@@ -35,8 +35,7 @@ def generate_task_payload(merchant_host, shop_token, fulfillment_payload):
     This function takes in the merchants domain and its corresponding token along with the merchant webhook's body
     and uses them to generate the JSON body that would be used in the HTTP request to be sent to FalconFlex.
 
-    As such, it would be used in the create_task() routine defined in rest_functions.py, which is called in the main
-    flask server script flask_server.py
+    As such, it would be used in the create_task() routine defined in rest_functions.py, which is called in the Task resource.
     """
     if payload_error_checker(fulfillment_payload):
         return {"errors": "Bad Request from merchant."}
@@ -81,7 +80,37 @@ def generate_task_payload(merchant_host, shop_token, fulfillment_payload):
         origin_phone = "000000000"
     if destination_phone == "":
         destination_phone = "000000000"
+
     import os
+    map_service_url = os.environ["MAP_SERVICE_URI"]
+    map_service_secret = os.environ["MAP_SERVICE_SECRET"]
+    from utils.map_service import get_coordinates
+    pickup_address = str(
+        location_data["address1"]) + " \n " + str(location_data["address2"])
+    try:
+        pickup_coordinates = get_coordinates(
+            map_service_url, map_service_secret, pickup_address)
+    except requests.RequestException as exc:
+        print("Pickup coordinates parse failed.")
+        print("Errors: ", exc)
+        return {"Failed to parse coordinates from provided pickup address.", 500}
+    destination_address = str(fulfillment_payload["destination"]["address1"]) + " \n " + str(
+        fulfillment_payload["destination"]["address2"])
+    destination_lat = fulfillment_payload["destination"]["latitude"]
+    destination_long = fulfillment_payload["destination"]["longitude"]
+    try:
+        destination_latitude = float(destination_lat)
+        destination_longitude = float(destination_long)
+        destination_coordinates = (destination_latitude, destination_longitude)
+    except ValueError:
+        try:
+            destination_coordinates = get_coordinates(
+                map_service_url, map_service_secret, destination_address)
+        except requests.RequestException as exc:
+            print("Destination coordinates parse failed.")
+            print("Errors: ", exc)
+            return {"Failed to parse coordinates from provided destination address.", 500}
+
     task_payload = {
         "transportTypeId": 1,  # could we determine this instead?
         "amountToBeCollected": 0.0,  # Webhook does not include this.
@@ -91,20 +120,20 @@ def generate_task_payload(merchant_host, shop_token, fulfillment_payload):
         "deliverByUtc": datesUtc[1],
         "pickup": {
             # Enforce str type via typecast as sometimes Address2 is NoneType
-            "Address": str(location_data["address1"]) + " \n " + str(location_data["address2"]),
+            "Address": pickup_address,
             "Name": location_data["name"],
             "PhoneNumber": origin_phone,
             # Lat-Longs are not normally provided, you need to use the Google Maps API for this.
-            "Latitude": os.environ["LATITUDE_TEST"],
-            "Longitude": os.environ["LONGITUDE_TEST"],
+            "Latitude": pickup_coordinates[0],
+            "Longitude": pickup_coordinates[1],
         },
         "delivery": {
-            "Address": str(fulfillment_payload["destination"]["address1"]) + " \n " + str(fulfillment_payload["destination"]["address2"]),
+            "Address": destination_address,
             "Name": fulfillment_payload["destination"]["name"],
             "PhoneNumber": destination_phone,
             # Lat-Longs are not provided, you need to use the Google Maps API for this.
-            "Latitude": fulfillment_payload["destination"]["latitude"],
-            "Longitude": fulfillment_payload["destination"]["longitude"]},
+            "Latitude": destination_coordinates[0],
+            "Longitude": destination_coordinates[1]},
         # Someone should check the default values for the following two
         "priority": 5,
         "canGroupTask": True,
