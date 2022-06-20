@@ -22,18 +22,12 @@ class Task_Update(Resource):
         task_update_payload = task_update_payload_raw["Data"]  # Cleaned
         order_id = task_update_payload["ClientGeneratedId"]
         task_update_metafields = task_update_payload["MetaDataFields"]
-        if task_update_metafields == None:
+        if (task_update_metafields == None) or (len(task_update_metafields) == 0):
             if verbose:
                 print("JSON Dump: ", task_update_payload)
                 print("ClientGeneratedID", order_id,
                       "not a Shopify order. Empty metadata.")
             return {"errors": "No metadata detected. Not a Shopify order."}, 412
-        if "merchant_url" not in task_update_metafields:
-            if verbose:
-                print("JSON Dump: ", task_update_payload)
-                print("ClientGeneratedID", order_id,
-                      "not a Shopify order. No merchant_url field.")
-            return {"errors": "No merchant_url detected. Not a Shopify order."}, 412
         # Check this once metadata structure is finalized.
         for i in task_update_metafields:
             if i["Key"] == "order_id":
