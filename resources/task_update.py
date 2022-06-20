@@ -25,6 +25,7 @@ class Task_Update(Resource):
 
         if "merchant_url" not in task_update_metafields:
             if verbose:
+                print("JSON Dump: ", task_update_payload)
                 print("ClientGeneratedID", order_id, "not a Shopify order.")
             return {"errors": "No merchant_url detected. Not a Shopify order."}, 412
         # Check this once metadata structure is finalized.
