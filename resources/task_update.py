@@ -20,11 +20,13 @@ class Task_Update(Resource):
         except:
             return {"errors": "Something went wrong with parsing incoming data."}, 400
         task_update_payload = task_update_payload_raw["Data"]  # Cleaned
-        if verbose:
-            print("Incoming raw payload: ", task_update_payload_raw)
-            print("Incoming cleaned payload: ", task_update_payload)
-        task_update_metafields = task_update_payload["MetaDataFields"]
         order_id = task_update_payload["ClientGeneratedId"]
+        task_update_metafields = task_update_payload["MetaDataFields"]
+        if task_update_metafields == None:
+            if verbose:
+                print("JSON Dump: ", task_update_payload)
+                print("ClientGeneratedID", order_id, "not a Shopify order.")
+            return {"errors": "No metadata detected. Not a Shopify order."}, 412
         if "merchant_url" not in task_update_metafields:
             if verbose:
                 print("JSON Dump: ", task_update_payload)
