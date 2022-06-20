@@ -33,6 +33,10 @@ class Task_Update(Resource):
                 merchant_url = i["Value"]
             else:
                 return {"errors": "Malformed metadata."}, 400
+        if verbose:
+            print("Order ID: ", order_id)
+            print("Fulfillment ID: ", fulfillment_id)
+            print("Merchant URL: ", merchant_url)
         from app import TenantTable
         merchant_url_cleaned = clean_host_url(merchant_url)
         company_record = TenantTable.query.filter(
