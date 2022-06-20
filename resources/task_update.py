@@ -23,6 +23,10 @@ class Task_Update(Resource):
         task_update_metafields = task_update_payload["MetaDataFields"]
         order_id = task_update_payload["ClientGeneratedId"]
 
+        if "merchant_url" not in task_update_metafields:
+            if verbose:
+                print("ClientGeneratedID", order_id, "not a Shopify order.")
+            return {"errors": "No merchant_url detected. Not a Shopify order."}, 412
         # Check this once metadata structure is finalized.
         for i in task_update_metafields:
             if i["Key"] == "order_id":
@@ -34,7 +38,6 @@ class Task_Update(Resource):
             else:
                 return {"errors": "Malformed metadata."}, 400
         if verbose:
-            print("Task Payload Dump: ", task_update_payload)
             print("Order ID: ", order_id)
             print("Fulfillment ID: ", fulfillment_id)
             print("Merchant URL: ", merchant_url)
