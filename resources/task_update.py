@@ -19,10 +19,12 @@ class Task_Update(Resource):
             return {"errors": "Task Update Payload JSON could not be decoded."}, 400
         except:
             return {"errors": "Something went wrong with parsing incoming data."}, 400
+        if verbose:
+            print("Incoming raw payload: ", task_update_payload_raw)
+            print("Incoming cleaned payload: ", task_update_payload)
         task_update_payload = task_update_payload_raw["Data"]  # Cleaned
         task_update_metafields = task_update_payload["MetaDataFields"]
         order_id = task_update_payload["ClientGeneratedId"]
-        print("Metafields: ", task_update_metafields)
         if "merchant_url" not in task_update_metafields:
             if verbose:
                 print("JSON Dump: ", task_update_payload)
