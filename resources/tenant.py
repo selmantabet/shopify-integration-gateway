@@ -38,7 +38,7 @@ class Tenant(Resource):
         except JSONDecodeError:
             return {"errors": "JSON could not be decoded."}, 400
         except KeyError:
-            return {"errors": "Failure on webhook creation."}, 400
+            return {"errors": "Failure on webhook creation.", "dump": fulfillments_callback_created_json}, 400
         except:
             return {"errors": "Something went wrong. Try again later."}, 500
 
