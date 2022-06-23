@@ -39,6 +39,6 @@ else:
         dbhost=os.environ['DBHOST'] + ".postgres.database.azure.com",
         dbname=os.environ['DBNAME']
     )
-    # INTEGRATION_GATEWAY_URI =
+    INTEGRATION_GATEWAY_HOSTNAME = os.environ["WEBSITE_HOSTNAME"]
     if VERBOSE:
         print(DATABASE_URI)

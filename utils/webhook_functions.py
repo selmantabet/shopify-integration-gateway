@@ -49,13 +49,3 @@ def retrieve_events(merchant_host, shop_token, order_id, fulfillment_id):
     response = requests.get(merchant_host + endpoint,
                             headers={"X-Shopify-Access-Token": shop_token})
     return response.json()
-
-
-# MERCHANT_HOST = "https://chaoscodes.myshopify.com/"
-# MERCHANT_TOKEN = "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"
-# print(json.dumps(retrieve_events(MERCHANT_HOST,
-#       MERCHANT_TOKEN, 4782097891581, 4291636363517), indent=4))
-# print(json.dumps(subscribe_merchant(MERCHANT_HOST, INTEGRATION_GATEWAY,
-#       MERCHANT_TOKEN, "fulfillments", "create"), indent=4))
-# print(unsubscribe_merchant(MERCHANT_HOST, 1144506810621, MERCHANT_TOKEN))
-# print(retrieve_webhooks_merchant(MERCHANT_HOST, MERCHANT_TOKEN))

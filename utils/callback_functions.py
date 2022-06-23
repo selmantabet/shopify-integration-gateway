@@ -44,7 +44,3 @@ def unsubscribe_fleet(fleet_management_url, company_id, callback_id, fleet_token
     r = requests.delete(fleet_management_url + endpoint,
                         headers=fleet_auth_header)
     return r
-
-
-# print(subscribe_fleet(FLEET_MANAGEMENT_URI, COMPANY_ID_TEST,
-#       FLEET_AUTH_TOKEN, INTEGRATION_GATEWAY_TEST_NOSCHEME, MERCHANT_TOKEN))

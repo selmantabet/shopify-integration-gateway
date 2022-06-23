@@ -36,7 +36,3 @@ def get_fulfillment_events(merchant_host, shop_token, order_id, fulfillment_id):
                      headers=shop_auth_header)
 
     return r.json()
-
-
-# print(get_fulfillment_events(MERCHANT_HOST,
-#       MERCHANT_TOKEN, 4756158578896, 4223330189520))

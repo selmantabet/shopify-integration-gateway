@@ -1,5 +1,4 @@
 from flask_restful import Resource
-# from env.constants_prod import SHOPIFY_API_VERSION, FLEET_MANAGEMENT_URI_PROD, FLEET_AUTH_TOKEN_PROD
 from utils.hmac_auth import hmac_authenticate
 from utils.helper_functions import generate_task_payload
 from utils.rest_functions import create_task
@@ -54,7 +53,6 @@ class Task(Resource):
         assert(fulfillment_payload["id"] == fulfillment_id_header,
                "Fatal error: Fulfillment ID Header not equal to body fulfillment ID.")
 
-        # merchant_token = MERCHANT_TOKEN  # ONLY FOR TESTING
         task_payload = generate_task_payload(
             merchant_url, merchant_token, fulfillment_payload)
         if verbose:
