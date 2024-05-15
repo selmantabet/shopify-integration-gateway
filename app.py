@@ -1,9 +1,9 @@
 """
-FalconFlex Integration Gateway - Main Script
+Shopify Integration Gateway - Main Script
 
 Developed by Selman Tabet @ https://selman.io/
 ------------------------------------------------
-Developed for FalconFlex - Snoonu Technologies.
+Developed for integration with a Fleet Management System (FMS) and Shopify.
 """
 
 from flask import Flask

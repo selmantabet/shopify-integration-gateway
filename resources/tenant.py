@@ -8,7 +8,7 @@ class Tenant(Resource):
     """
     The Tenant resource: Simply deals with webhooks subscriptions upon info submission by an admin.
 
-    FalconFlex callbacks are still not tested, need the right credentials for that.
+    FMS callbacks are still not tested, need the right credentials for that.
     """
 
     def get(self):  # Get all tenant callbacks

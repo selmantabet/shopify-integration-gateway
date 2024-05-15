@@ -1,9 +1,9 @@
 """
-Integration Gateway FalconFlex callback functions
+Integration Gateway FMS callback functions
 
 Developed by Selman Tabet @ https://selman.io/
 ------------------------------------------------
-This is where webhook calls for FalconFlex are made.
+This is where webhook calls for FMS are made.
 """
 
 import requests

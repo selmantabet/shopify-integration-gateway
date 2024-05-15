@@ -4,7 +4,7 @@ Integration Gateway Merchant Webhook functions
 Developed by Selman Tabet @ https://selman.io/
 ------------------------------------------------
 This is where webhook calls for the merchant are made.
-For now, FalconFlex webhook (or as we call it, callback) code are in the callback_functions.py file.
+For now, FMS webhook (or as we call it, callback) code are in the callback_functions.py file.
 """
 
 import requests

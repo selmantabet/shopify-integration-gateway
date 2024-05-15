@@ -33,7 +33,7 @@ def payload_error_checker(payload):
 def generate_task_payload(merchant_host, shop_token, fulfillment_payload):
     """
     This function takes in the merchants domain and its corresponding token along with the merchant webhook's body
-    and uses them to generate the JSON body that would be used in the HTTP request to be sent to FalconFlex.
+    and uses them to generate the JSON body that would be used in the HTTP request to be sent to FMS.
 
     As such, it would be used in the create_task() routine defined in rest_functions.py, which is called in the Task resource.
     """
@@ -153,7 +153,7 @@ def retrieve_fulfillment_location(merchant_host, shop_token, location_id):
     The fulfillment center's location can only be retrieved via Shopify's 
     Locations API resource as the location data is not sent over the webhook.
     Only the location ID is sent in each webhook. We could, however, store 
-    fulfillment location details (including lat-longs) on FalconFlex. Doing so would 
+    fulfillment location details (including lat-longs) on the FMS. Doing so would 
     require the task payload generator function to have its pickupLocationTypeId
     and deliverLocationTypeId fields re-evaluated to make use of this.
     """
